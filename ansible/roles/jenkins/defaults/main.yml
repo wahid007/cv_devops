@@ -1,0 +1,18 @@
+---
+# roles/jenkins/defaults/main.yml
+# Version de Java à installer
+jenkins_java_package: "openjdk-17-jdk"  # Debian/Ubuntu
+# jenkins_java_package: "java-17-openjdk"  # RedHat/CentOS
+
+# Port d'écoute Jenkins
+jenkins_port: 8080
+
+# Afficher le mot de passe initial
+jenkins_get_initial_password: true
+
+# Plugins Jenkins à installer (optionnel)
+jenkins_plugins: []
+#  - git
+#  - workflow-aggregator
+#  - docker-workflow
+#  - blueocean

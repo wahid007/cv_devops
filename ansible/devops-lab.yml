@@ -1,0 +1,16 @@
+---
+- name: Test playbook
+  hosts: devops_lab
+  become: true
+
+  vars:
+    jenkins_port: 8080
+    jenkins_java_package: "openjdk-17-jdk"  # Pour Debian/Ubuntu
+
+  roles:
+    - hello
+    - ping
+    # - nginx
+    - docker-ubuntu
+    - terraform
+    - jenkins

@@ -1,0 +1,2 @@
+# roles/jenkins/vars/Debian.yml
+jenkins_java_package: "openjdk-17-jdk"

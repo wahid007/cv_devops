@@ -1,0 +1,4 @@
+---
+- name: Print a hello message
+  ansible.builtin.debug:
+    msg:  "Hello from hello role! {{ ansible_distribution_release }}"

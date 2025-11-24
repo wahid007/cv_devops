@@ -1,0 +1,70 @@
+---
+# roles/terraform/tasks/main.yml
+- name: Vérifier l'architecture du système
+  set_fact:
+    terraform_arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else 'arm64' if ansible_architecture == 'aarch64' else ansible_architecture }}"
+
+- name: Définir la version de Terraform
+  set_fact:
+    terraform_version: "{{ terraform_version | default('1.9.8') }}"
+
+- name: Vérifier si Terraform est déjà installé
+  command: terraform version
+  register: terraform_installed
+  failed_when: false
+  changed_when: false
+
+- name: Extraire la version installée
+  set_fact:
+    installed_version: "{{ terraform_installed.stdout | regex_search('v([0-9.]+)', '\\1') | first }}"
+  when: terraform_installed.rc == 0
+
+- name: Installer Terraform si nécessaire
+  block:
+    - name: Créer le répertoire temporaire
+      tempfile:
+        state: directory
+        suffix: terraform
+      register: temp_dir
+
+    - name: Télécharger Terraform
+      get_url:
+        url: "https://releases.hashicorp.com/terraform/{{ terraform_version }}/terraform_{{ terraform_version }}_linux_{{ terraform_arch }}.zip"
+        dest: "{{ temp_dir.path }}/terraform.zip"
+        mode: '0644'
+
+    - name: Installer unzip si nécessaire
+      package:
+        name: unzip
+        state: present
+      become: true
+
+    - name: Décompresser Terraform
+      unarchive:
+        src: "{{ temp_dir.path }}/terraform.zip"
+        dest: "{{ temp_dir.path }}"
+        remote_src: true
+
+    - name: Copier le binaire Terraform
+      copy:
+        src: "{{ temp_dir.path }}/terraform"
+        dest: /usr/local/bin/terraform
+        mode: '0755'
+        remote_src: true
+      become: true
+
+    - name: Nettoyer les fichiers temporaires
+      file:
+        path: "{{ temp_dir.path }}"
+        state: absent
+
+  when: terraform_installed.rc != 0 or installed_version != terraform_version
+
+- name: Vérifier l'installation de Terraform
+  command: terraform version
+  register: terraform_verify
+  changed_when: false
+
+- name: Afficher la version installée
+  debug:
+    msg: "Terraform {{ terraform_verify.stdout_lines[0] }} installé avec succès"

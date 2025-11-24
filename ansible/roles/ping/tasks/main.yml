@@ -1,0 +1,4 @@
+---
+- name: Ping host
+  ansible.builtin.debug:
+

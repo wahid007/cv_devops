@@ -1,0 +1,46 @@
+---
+# roles/jenkins/tasks/debian.yml
+- name: Installer les dépendances (Debian/Ubuntu)
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - software-properties-common
+    state: present
+    update_cache: true
+
+- name: Installer Java OpenJDK
+  apt:
+    name: "{{ jenkins_java_package }}"
+    state: present
+    update_cache: true
+
+- name: Ajouter la clé GPG de Jenkins
+  apt_key:
+    url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+    state: present
+
+- name: Ajouter le dépôt Jenkins
+  apt_repository:
+    repo: "deb https://pkg.jenkins.io/debian-stable binary/"
+    state: present
+    filename: jenkins
+
+- name: Mettre à jour le cache APT
+  apt:
+    update_cache: true
+
+- name: Installer Jenkins
+  apt:
+    name: jenkins
+    state: present
+
+- name: Configurer le port Jenkins si nécessaire
+  lineinfile:
+    path: /etc/default/jenkins
+    regexp: "^HTTP_PORT="
+    line: "HTTP_PORT={{ jenkins_port }}"
+  notify: restart jenkins
+  when: jenkins_port != 8080

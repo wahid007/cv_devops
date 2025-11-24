@@ -1,0 +1,34 @@
+---
+# roles/jenkins/tasks/main.yml
+- name: Inclure les tâches spécifiques à la distribution
+  include_tasks: "{{ ansible_os_family | lower }}.yml"
+
+- name: Démarrer et activer le service Jenkins
+  systemd:
+    name: jenkins
+    state: started
+    enabled: true
+    daemon_reload: true
+
+- name: Attendre que Jenkins démarre
+  wait_for:
+    port: "{{ jenkins_port }}"
+    delay: 10
+    timeout: 300
+
+- name: Récupérer le mot de passe initial de Jenkins
+  slurp:
+    src: /var/lib/jenkins/secrets/initialAdminPassword
+  register: jenkins_initial_password
+  when: jenkins_get_initial_password | bool
+
+- name: Afficher le mot de passe initial
+  debug:
+    msg: "Mot de passe initial Jenkins : {{ jenkins_initial_password.content | b64decode }}"
+  when: 
+    - jenkins_get_initial_password | bool
+    - jenkins_initial_password is defined
+
+- name: Afficher l'URL de Jenkins
+  debug:
+    msg: "Jenkins est accessible sur : http://{{ ansible_default_ipv4.address }}:{{ jenkins_port }}"

@@ -1,0 +1,20 @@
+- name: Installer nginx
+  become: yes
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+
+- name: Configurer nginx pour écouter sur le port 8888
+  become: yes
+  ansible.builtin.lineinfile:
+    path: /etc/nginx/sites-available/default
+    regexp: '^\\s*listen\\s+'
+    line: '    listen 8888;'
+    backrefs: yes
+
+- name: Redémarrer nginx pour appliquer la configuration
+  become: yes
+  ansible.builtin.systemd:
+    name: nginx
+    state: restarted
+    enabled: yes
