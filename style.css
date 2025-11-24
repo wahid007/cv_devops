@@ -1,0 +1,185 @@
+/* --- VARIABLES ET RESET FUTURISTES --- */
+:root {
+    /* Nuances de Bleu Électrique et Cyan */
+    --primary-blue: #00BFFF; /* Deep Sky Blue - Vif */
+    --secondary-blue: #1E90FF; /* Dodger Blue */
+    --accent-cyan: #00FFFF; /* Cyan */
+    --background-dark: #0A192F; /* Bleu Marine Profond / Presque Noir */
+    --text-light: #CCD6F6; /* Gris Bleu clair pour la lecture */
+    --font-family: 'Consolas', 'Fira Code', monospace, sans-serif; /* Police technique */
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    line-height: 1.6;
+    color: var(--text-light);
+    background-color: var(--background-dark);
+    padding: 20px;
+}
+
+/* --- CONTENEUR PRINCIPAL DU CV (EFFET LUMINEUX) --- */
+.cv-container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #112240; /* Bleu marine intermédiaire */
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2); /* Ombre cyan/futuriste */
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 255, 255, 0.1);
+}
+
+/* --- EN-TÊTE AVEC DÉGRADÉ --- */
+.header {
+    /* Dégradé de bleu électrique à cyan */
+    background: linear-gradient(135deg, var(--secondary-blue) 0%, var(--primary-blue) 70%, var(--accent-cyan) 100%);
+    color: var(--background-dark); /* Texte sombre sur dégradé clair */
+    padding: 30px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h1 {
+    font-size: 2.5em;
+    margin-bottom: 5px;
+    font-weight: 700;
+}
+
+.header .title {
+    font-size: 1.1em;
+    font-weight: 500;
+}
+
+/* --- PHOTO DE PROFIL FUTURISTE --- */
+.profile-photo {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    /* Cercle lumineux autour de la photo */
+    border: 4px solid var(--accent-cyan); 
+    box-shadow: 0 0 10px var(--accent-cyan);
+    flex-shrink: 0;
+}
+
+.profile-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* --- MISE EN PAGE PRINCIPALE (SIDEBAR + CONTENU) --- */
+.section-main {
+    display: flex;
+}
+
+/* --- COLONNE LATÉRALE (SIDEBAR) avec Dégradé subtil --- */
+.sidebar {
+    width: 300px;
+    padding: 30px;
+    background-color: #0B2B47; /* Nuance de bleu plus foncée */
+    flex-shrink: 0;
+    /* Séparateur élégant */
+    border-right: 1px solid rgba(0, 255, 255, 0.1); 
+}
+
+.sidebar h2 {
+    color: var(--accent-cyan);
+    font-size: 1.3em;
+    margin-top: 25px;
+    margin-bottom: 12px;
+    /* Bordure lumineuse */
+    border-bottom: 2px solid var(--accent-cyan);
+    padding-bottom: 5px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.sidebar li {
+    margin-bottom: 10px;
+    font-size: 0.9em;
+}
+
+.sidebar .icon {
+    margin-right: 8px;
+    color: var(--primary-blue);
+    font-size: 1.1em;
+}
+
+.skills-list li ** { /* Pour cibler les compétences clés en gras */
+    color: var(--accent-cyan);
+}
+
+
+/* --- ZONE DE CONTENU PRINCIPALE --- */
+.content {
+    flex-grow: 1;
+    padding: 30px 40px;
+}
+
+.content h2 {
+    font-size: 1.6em;
+    color: var(--primary-blue);
+    /* Ligne de séparation subtile */
+    border-bottom: 1px solid #1E4D6E;
+    padding-bottom: 5px;
+    margin-bottom: 25px;
+    margin-top: 15px;
+    text-transform: uppercase;
+}
+
+.content h2:first-child {
+    margin-top: 0;
+}
+
+/* --- EXPÉRIENCE & ÉDUCATION --- */
+.job-entry, .education-entry {
+    margin-bottom: 30px;
+    padding-left: 15px;
+    /* Petite bordure à gauche comme indicateur de chronologie */
+    border-left: 3px solid var(--secondary-blue);
+}
+
+.job-entry h3, .education-entry h3 {
+    font-size: 1.2em;
+    color: var(--text-light);
+    margin-bottom: 3px;
+    font-weight: 600;
+}
+
+.job-entry h4 {
+    color: var(--accent-cyan);
+    font-size: 1em;
+    margin-bottom: 3px;
+}
+
+.job-meta, .education-meta {
+    font-style: italic;
+    margin-bottom: 10px;
+    display: block;
+    color: #8892B0; /* Gris plus froid */
+    font-size: 0.9em;
+}
+
+.job-entry ul {
+    list-style: disc;
+    margin-left: 20px;
+    font-size: 0.95em;
+    color: var(--text-light);
+}
+
+.job-entry li {
+    margin-bottom: 5px;
+}
