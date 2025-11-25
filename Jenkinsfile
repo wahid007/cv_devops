@@ -75,15 +75,13 @@ pipeline {
             }
         }
 
-        stages {
-            stage('Notify Slack') {
-                steps {
-                    sh '''
-                    curl -X POST -H 'Content-type: application/json' \
-                    --data '{"text":"Build completed successfully!"}' \
-                    https://hooks.slack.com/services/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
-                    '''
-                }
+        stage('Notify Slack') {
+            steps {
+                sh '''
+                curl -X POST -H 'Content-type: application/json' \
+                --data '{"text":"Build completed successfully!"}' \
+                https://hooks.slack.com/services/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
+                '''
             }
         }
 
