@@ -1,0 +1,56 @@
+# roles/k3s/tasks/main.yml
+---
+- name: Check if K3s is already installed
+  stat:
+    path: /usr/local/bin/k3s
+  register: k3s_binary
+
+- name: Download K3s installation script
+  get_url:
+    url: https://get.k3s.io
+    dest: /tmp/k3s-install.sh
+    mode: '0755'
+  when: not k3s_binary.stat.exists
+
+- name: Install K3s single node
+  shell: /tmp/k3s-install.sh
+  environment:
+    INSTALL_K3S_EXEC: "server --write-kubeconfig-mode 644"
+  when: not k3s_binary.stat.exists
+
+- name: Wait for K3s to be ready
+  wait_for:
+    path: /etc/rancher/k3s/k3s.yaml
+    timeout: 60
+
+- name: Ensure .kube directory exists
+  file:
+    path: "{{ ansible_env.HOME }}/.kube"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+
+- name: Copy K3s kubeconfig to .kube/config
+  copy:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: "{{ ansible_env.HOME }}/.kube/config"
+    remote_src: yes
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+    mode: '0600'
+
+- name: Replace localhost with actual IP in kubeconfig
+  replace:
+    path: "{{ ansible_env.HOME }}/.kube/config"
+    regexp: '127\.0\.0\.1'
+    replace: "{{ ansible_default_ipv4.address }}"
+
+- name: Verify K3s installation
+  command: kubectl get nodes
+  register: k3s_nodes
+  changed_when: false
+
+- name: Display K3s status
+  debug:
+    var: k3s_nodes.stdout_lines

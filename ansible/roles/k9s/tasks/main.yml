@@ -1,0 +1,118 @@
+# roles/k9s/tasks/main.yml
+- name: Detect system architecture
+  set_fact:
+    k9s_arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else 'arm64' if ansible_architecture == 'aarch64' else ansible_architecture }}"
+
+- name: Set K9s version
+  set_fact:
+    k9s_version: "{{ k9s_version | default('v0.32.5') }}"
+
+- name: Check if K9s is already installed
+  command: k9s version
+  register: k9s_installed
+  failed_when: false
+  changed_when: false
+
+- name: Extract installed version
+  set_fact:
+    installed_k9s_version: "{{ k9s_installed.stdout | regex_search('Version:\\s+v([0-9.]+)', '\\1') | first }}"
+  when: k9s_installed.rc == 0
+
+- name: Install K9s if necessary
+  block:
+    - name: Create temporary directory
+      tempfile:
+        state: directory
+        suffix: k9s
+      register: temp_dir
+
+    - name: Download K9s tarball
+      get_url:
+        url: "https://github.com/derailed/k9s/releases/download/{{ k9s_version }}/k9s_Linux_{{ k9s_arch }}.tar.gz"
+        dest: "{{ temp_dir.path }}/k9s.tar.gz"
+        mode: '0644'
+
+    - name: Extract K9s tarball
+      unarchive:
+        src: "{{ temp_dir.path }}/k9s.tar.gz"
+        dest: "{{ temp_dir.path }}"
+        remote_src: true
+
+    - name: Install K9s binary
+      copy:
+        src: "{{ temp_dir.path }}/k9s"
+        dest: "{{ k9s_install_path }}/k9s"
+        mode: '0755'
+        remote_src: true
+      become: true
+
+    - name: Clean up temporary files
+      file:
+        path: "{{ temp_dir.path }}"
+        state: absent
+
+  when: k9s_installed.rc != 0 or (installed_k9s_version is defined and installed_k9s_version != k9s_version.lstrip('v'))
+
+- name: Verify K9s installation
+  command: k9s version
+  register: k9s_verify
+  changed_when: false
+
+- name: Display installed K9s version
+  debug:
+    msg: "K9s {{ k9s_verify.stdout_lines[0] }} installed successfully"
+
+- name: Create K9s config directory for users
+  file:
+    path: "{{ item }}/.config/k9s"
+    state: directory
+    mode: '0755'
+    owner: "{{ item | basename }}"
+  loop: "{{ k9s_config_users }}"
+  when: k9s_config_users | length > 0
+
+- name: Copy K9s skin configuration (optional)
+  copy:
+    content: |
+      # K9s skin configuration
+      k9s:
+        liveViewAutoRefresh: true
+        screenDumpDir: /tmp/k9s-screens
+        refreshRate: 2
+        maxConnRetry: 5
+        readOnly: false
+        noExitOnCtrlC: false
+        ui:
+          enableMouse: true
+          headless: false
+          logoless: false
+          crumbsless: false
+          reactive: false
+          noIcons: false
+        skipLatestRevCheck: false
+        disablePodCounting: false
+        shellPod:
+          image: busybox:1.35.0
+          namespace: default
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        imageScans:
+          enable: false
+          exclusions:
+            namespaces: []
+            labels: {}
+        logger:
+          tail: 100
+          buffer: 5000
+          sinceSeconds: -1
+          fullScreen: false
+          textWrap: false
+          showTime: false
+    dest: "{{ item }}/.config/k9s/config.yml"
+    mode: '0644'
+    owner: "{{ item | basename }}"
+  loop: "{{ k9s_config_users }}"
+  when: 
+    - k9s_config_users | length > 0
+    - k9s_create_default_config | bool

@@ -1,0 +1,7 @@
+# roles/k3s/handlers/main.yml
+---
+- name: restart k3s
+  systemd:
+    name: k3s
+    state: restarted
+    enabled: yes

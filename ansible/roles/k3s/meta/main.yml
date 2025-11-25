@@ -1,0 +1,18 @@
+# roles/k3s/meta/main.yml
+---
+galaxy_info:
+  author: DevOps Team
+  description: Install K3s single node cluster
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
+
+dependencies: []

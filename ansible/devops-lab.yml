@@ -1,5 +1,5 @@
 ---
-- name: Test playbook
+- name: DevOps playbook
   hosts: devops_lab
   become: true
 
@@ -7,10 +7,51 @@
     jenkins_port: 8080
     jenkins_java_package: "openjdk-17-jdk"  # Pour Debian/Ubuntu
 
+    k9s_version: "v0.32.5"
+    k9s_config_users:
+      - /home/wahid
+      - /root
+    k9s_create_default_config: true    
+
   roles:
     - hello
     - ping
-    # - nginx
+    - k9s
+    - nginx
     - docker-ubuntu
     - terraform
     - jenkins
+    - k3s
+
+  post_tasks:
+    - name: K9s info
+      debug:
+        msg: |
+          K9s has been installed successfully!
+          Run 'k9s' to start managing your Kubernetes clusters.
+          
+          Quick tips:
+          - Press '?' for help
+          - Press ':pod' to view pods
+          - Press ':svc' to view services
+          - Press ':ns' to view namespaces
+          - Press 'Ctrl-C' to exit
+
+    - name: Docker info
+      debug:
+        msg: |
+          Docker has been installed successfully!
+          You can manage Docker containers using the 'docker' command.
+
+    - name: Terraform info
+      debug:
+        msg: |
+          Terraform has been installed successfully!
+          You can start using Terraform by creating configuration files and running 'terraform init'.
+    - name: Jenkins info
+      debug:
+        msg: |
+          Jenkins has been installed successfully!
+          Access Jenkins at: http://<your_server_ip>:{{ jenkins_port }}
+          Initial Admin Password can be found at: /var/lib/jenkins/secrets/initialAdminPassword
+          

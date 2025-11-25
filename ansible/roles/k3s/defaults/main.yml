@@ -1,0 +1,4 @@
+# roles/k3s/defaults/main.yml
+---
+k3s_version: stable
+k3s_server_options: "--write-kubeconfig-mode 644"

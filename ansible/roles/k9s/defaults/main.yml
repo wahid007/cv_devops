@@ -1,0 +1,16 @@
+# roles/k9s/defaults/main.yml
+# K9s version to install
+k9s_version: "v0.32.5"
+
+# Installation path
+k9s_install_path: "/usr/local/bin"
+
+# Create config for these user home directories (empty list = skip)
+k9s_config_users: []
+# Example:
+# k9s_config_users:
+#   - /home/ubuntu
+#   - /home/devops
+
+# Create default K9s config file
+k9s_create_default_config: false
