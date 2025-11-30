@@ -162,7 +162,18 @@ pipeline {
  *    - Créer un token Slack : https://api.slack.com/apps
  *    - Ajouter des credentials de type "Secret text"
  *    - ID : slack-token
- *    - Secret : [Votre token Slack]
+ *    - Secret : [Votre token Slack] - take note of the OAuth token
+ *      il will be needed later when configuring Jenkins
+
+ *    - Visit https://api.slack.com
+ *    - Login to the desired workspace
+ *    - Click the Start Building button
+ *    - Name the application Jenkins and click Create App
+ *    - Click on OAuth & Permissions
+ *    - In the Bot Token Scopes section, add the chat:write.public scope
+ *    - Click the Install App to Workspace button
+ *    - Click the Accept button
+
  * 
  * 3. PLUGINS REQUIS :
  *    - Docker Pipeline
