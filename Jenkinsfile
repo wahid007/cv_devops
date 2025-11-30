@@ -135,6 +135,79 @@ pipeline {
                 )
             }
         }
+
+    post {
+        success {
+            script {
+                def duration = currentBuild.durationString.replace(' and counting', '')
+                
+                slackSend(
+                    channel: "${SLACK_CHANNEL}",
+                    color: 'good',
+                    message: """
+                        *CV DevOps Pipeline - Build #${env.BUILD_NUMBER}*
+                        
+                        🔄 Checkout ➜ 🏗️ Build ➜ ✅ Test ➜ 📦 Push ➜ 🚀 Deploy
+                        
+                        *Status:* ✅ SUCCESS
+                        *Job:* ${env.JOB_NAME}
+                        *Image:* ${IMAGE_NAME}
+                        *Durée:* ${duration}
+                        *Détails:* ${env.BUILD_URL}
+                    """.stripIndent(),
+                    tokenCredentialId: "${SLACK_CREDENTIALS}"
+                )
+            }
+        }
+        
+        failure {
+            script {
+                def duration = currentBuild.durationString.replace(' and counting', '')
+                def failedStage = currentBuild.rawBuild.getAction(jenkins.model.InterruptedBuildAction.class)?.causes[0]?.shortDescription ?: 'Unknown'
+                
+                // Determine which icon to mark as failed
+                def pipeline = "🔄 Checkout ➜ 🏗️ Build ➜ ✅ Test ➜ 📦 Push ➜ 🚀 Deploy"
+                
+                slackSend(
+                    channel: "${SLACK_CHANNEL}",
+                    color: 'danger',
+                    message: """
+                        *CV DevOps Pipeline - Build #${env.BUILD_NUMBER}*
+                        
+                        ${pipeline}
+                        
+                        *Status:* ❌ FAILED
+                        *Job:* ${env.JOB_NAME}
+                        *Durée:* ${duration}
+                        *Détails:* ${env.BUILD_URL}console
+                    """.stripIndent(),
+                    tokenCredentialId: "${SLACK_CREDENTIALS}"
+                )
+            }
+        }
+        
+        unstable {
+            script {
+                def duration = currentBuild.durationString.replace(' and counting', '')
+                
+                slackSend(
+                    channel: "${SLACK_CHANNEL}",
+                    color: 'warning',
+                    message: """
+                        *CV DevOps Pipeline - Build #${env.BUILD_NUMBER}*
+                        
+                        🔄 Checkout ➜ 🏗️ Build ➜ ⚠️ Test ➜ 📦 Push ➜ 🚀 Deploy
+                        
+                        *Status:* ⚠️ UNSTABLE
+                        *Job:* ${env.JOB_NAME}
+                        *Durée:* ${duration}
+                        *Détails:* ${env.BUILD_URL}
+                    """.stripIndent(),
+                    tokenCredentialId: "${SLACK_CREDENTIALS}"
+                )
+            }
+        }
+    }
         
         always {
             script {
