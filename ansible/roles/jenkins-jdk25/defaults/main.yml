@@ -1,0 +1,6 @@
+---
+# roles/jenkins/defaults/main.yml
+
+jenkins_port: 8080
+jenkins_home: /var/lib/jenkins
+java_home: /opt/jdk-25

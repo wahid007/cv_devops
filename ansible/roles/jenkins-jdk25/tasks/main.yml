@@ -1,0 +1,144 @@
+---
+# roles/jenkins/tasks/main.yml
+
+- name: Install required dependencies
+  ansible.builtin.apt:
+    name:
+      - wget
+      - gnupg2
+      - software-properties-common
+      - apt-transport-https
+      - ca-certificates
+      - curl
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install required dependencies (RedHat)
+  ansible.builtin.yum:
+    name:
+      - wget
+      - curl
+      - fontconfig
+    state: present
+  when: ansible_os_family == "RedHat"
+
+# Install JDK 25
+- name: Download JDK 25
+  ansible.builtin.get_url:
+    url: "https://download.oracle.com/java/25/latest/jdk-25_linux-x64_bin.tar.gz"
+    dest: "/tmp/jdk-25.tar.gz"
+    mode: '0644'
+
+- name: Create Java installation directory
+  ansible.builtin.file:
+    path: /opt/jdk-25
+    state: directory
+    mode: '0755'
+
+- name: Extract JDK 25
+  ansible.builtin.unarchive:
+    src: "/tmp/jdk-25.tar.gz"
+    dest: /opt/jdk-25
+    remote_src: yes
+    extra_opts: [--strip-components=1]
+
+- name: Set JAVA_HOME environment variable
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    line: 'JAVA_HOME="/opt/jdk-25"'
+    create: yes
+
+- name: Update alternatives for java
+  ansible.builtin.alternatives:
+    name: java
+    link: /usr/bin/java
+    path: /opt/jdk-25/bin/java
+    priority: 1
+
+- name: Update alternatives for javac
+  ansible.builtin.alternatives:
+    name: javac
+    link: /usr/bin/javac
+    path: /opt/jdk-25/bin/javac
+    priority: 1
+
+# Install Jenkins (Debian/Ubuntu)
+- name: Add Jenkins GPG key (Debian)
+  ansible.builtin.apt_key:
+    url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Add Jenkins repository (Debian)
+  ansible.builtin.apt_repository:
+    repo: "deb https://pkg.jenkins.io/debian-stable binary/"
+    state: present
+    filename: jenkins
+  when: ansible_os_family == "Debian"
+
+- name: Install Jenkins (Debian)
+  ansible.builtin.apt:
+    name: jenkins
+    state: latest
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+# Install Jenkins (RedHat/CentOS)
+- name: Add Jenkins repository (RedHat)
+  ansible.builtin.get_url:
+    url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
+    dest: /etc/yum.repos.d/jenkins.repo
+  when: ansible_os_family == "RedHat"
+
+- name: Import Jenkins GPG key (RedHat)
+  ansible.builtin.rpm_key:
+    key: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Install Jenkins (RedHat)
+  ansible.builtin.yum:
+    name: jenkins
+    state: latest
+  when: ansible_os_family == "RedHat"
+
+# Configure Jenkins to use JDK 25
+- name: Configure Jenkins Java path
+  ansible.builtin.lineinfile:
+    path: /etc/default/jenkins
+    regexp: '^JAVA_HOME='
+    line: 'JAVA_HOME="/opt/jdk-25"'
+    create: yes
+  when: ansible_os_family == "Debian"
+
+- name: Configure Jenkins Java path (RedHat)
+  ansible.builtin.lineinfile:
+    path: /etc/sysconfig/jenkins
+    regexp: '^JAVA_HOME='
+    line: 'JAVA_HOME="/opt/jdk-25"'
+    create: yes
+  when: ansible_os_family == "RedHat"
+
+# Start and enable Jenkins
+- name: Start and enable Jenkins service
+  ansible.builtin.systemd:
+    name: jenkins
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: Wait for Jenkins to start
+  ansible.builtin.wait_for:
+    port: 8080
+    delay: 10
+    timeout: 300
+
+- name: Get Jenkins initial admin password
+  ansible.builtin.slurp:
+    src: /var/lib/jenkins/secrets/initialAdminPassword
+  register: jenkins_initial_password
+
+- name: Display Jenkins initial admin password
+  ansible.builtin.debug:
+    msg: "Jenkins initial admin password: {{ jenkins_initial_password['content'] | b64decode }}"
